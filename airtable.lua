@@ -134,6 +134,59 @@ function airtable.list_records(base_id, table_name, view, params)
 	return ok2 and dec or nil
 end
 
+function airtable.getRecord(base_id, table_name, record_id)
+	if not validateInput(table_name) then
+		return nil, "Invalid table_name"
+	end
+
+	if not validateInput(record_id) then
+		return nil, "Invalid record_id (must be a string)"
+	end
+
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, "Headers failed to build"
+	end
+
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. table_name .. "/" .. record_id
+	local body = {}
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "GET",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
 
 
 return airtable
