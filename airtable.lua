@@ -20,8 +20,6 @@ function airtable.sanitizeFormulaValue(value)
 	end
 	local sanitized = value:gsub('"', '\\"')
 	sanitized = sanitized:gsub("'", "\\'")
-	sanitized = sanitized:gsub("{", "")
-	sanitized = sanitized:gsub("}", "")
 	sanitized = sanitized:gsub("%(", "")
 	sanitized = sanitized:gsub("%)", "")
 	return sanitized
@@ -69,8 +67,13 @@ local function validateInput(input)
 		return true
 	end
 end
+local function url_encode(str)
+  return str:gsub("([^%w%-_%.~])", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end)
+end
 
-function airtable.list_records(base_id, table_name, view, params)
+function airtable.list(base_id, table_name, view, params)
 	if not validateInput(table_name) then
 		return nil, "Invalid table_name"
 	end
@@ -134,7 +137,7 @@ function airtable.list_records(base_id, table_name, view, params)
 	return ok2 and dec or nil
 end
 
-function airtable.getRecord(base_id, table_name, record_id)
+function airtable.get(base_id, table_name, record_id)
 	if not validateInput(table_name) then
 		return nil, "Invalid table_name"
 	end
@@ -188,6 +191,36 @@ function airtable.getRecord(base_id, table_name, record_id)
 	return ok2 and dec or nil
 end
 
+function airtable.getByField(base_id, table_name, field, value)
+	if not validateInput(table_name) then
+		return nil, "Invalid table_name"
+	end
+
+	if not validateInput(field) then
+		return nil, "Invalid field"
+	end
+
+	if not validateInput(value) then
+		return nil, "Invalid value"
+	end
+
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	local safeValue = airtable.sanitizeFormulaValue(value)
+	local formula = "{" .. field .. "} = \"" .. safeValue .. "\""
+
+	local records, err = airtable.list(base_id, table_name, nil, {filterByFormula = formula})
+
+	if records then
+		return records.records[1]
+	else 
+		return err
+	end
+
+
+end
 
 return airtable
 
