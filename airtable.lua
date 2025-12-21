@@ -277,5 +277,47 @@ function airtable.update(base_id, table_name, record_id, fields)
 	return ok2 and dec or nil
 end
 
+function airtable.updateByField(base_id, table_name, field, value, updatedFields)
+	if not validateInput(table_name) then
+		return nil, "Invalid table_name"
+	end
+
+	if not validateInput(field) then
+		return nil, "Invalid field"
+	end
+
+	if not validateInput(value) then
+		return nil, "Invalid value"
+	end
+
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	if not updatedFields then
+		return nil, "Missing fields to update"
+	end
+
+	local safeValue = airtable.sanitizeFormulaValue(value)
+	local formula = "{" .. field .. "} = \"" .. safeValue .. "\""
+
+	local records, err = airtable.list(base_id, table_name, nil, {filterByFormula = formula})
+	local recId 
+	if records and records.records and records.records[1] then
+		recId = records.records[1].id
+	else 
+		return nil, err or "No record found"
+	end
+
+	local record, err2 = airtable.update(base_id, table_name, recId, updatedFields) 
+
+	if err2 then
+		return err2
+	else 
+		return record 
+	end
+	
+end
+
 return airtable
 
