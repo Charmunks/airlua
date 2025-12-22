@@ -23,7 +23,7 @@ Once you have Astra installed, simply download airtable.lua and add it to your p
 
 | Type |  Percent | Completed | To-do |
 |------|----------|-----------|-------|
-| Records | 80% | All routes supported | Support for modifying multiple records at once |
+| Records | 100% | All routes supported | - |
 | Tables | 0% | Not started | Implement table management |
 | Fields | 0% | Not started | Implement field management |
 | Comments | 0% | Not started | Implement comment management | 
@@ -154,6 +154,70 @@ Deletes a record by its ID.
 
 ```lua
 local result, err = airtable.delete("appXXXXXXXXXX", "Tasks", "recXXXXXXXXXX")
+```
+
+---
+
+### Bulk Operations
+
+#### `airtable.createBulk(base_id, table_name, recordsArray)`
+
+Creates multiple records in a single request (max 10 per request).
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `recordsArray` (table) - Array of field tables for each record
+
+**Returns:** Table containing `records` array with created records, or `nil` and error message
+
+```lua
+local result, err = airtable.createBulk("appXXXXXXXXXX", "Tasks", {
+    {Name = "Task 1", Status = "Todo"},
+    {Name = "Task 2", Status = "In Progress"},
+    {Name = "Task 3", Status = "Done"}
+})
+```
+
+---
+
+#### `airtable.updateBulk(base_id, table_name, recordsArray)`
+
+Updates multiple records in a single request (max 10 per request).
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `recordsArray` (table) - Array of tables, each with `id` and `fields` properties
+
+**Returns:** Table containing `records` array with updated records, or `nil` and error message
+
+```lua
+local result, err = airtable.updateBulk("appXXXXXXXXXX", "Tasks", {
+    {id = "recXXXXXXXXX1", fields = {Status = "Done"}},
+    {id = "recXXXXXXXXX2", fields = {Status = "Done"}},
+})
+```
+
+---
+
+#### `airtable.deleteBulk(base_id, table_name, recordIds)`
+
+Deletes multiple records in a single request (max 10 per request).
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `recordIds` (table) - Array of record IDs to delete
+
+**Returns:** Table containing `records` array with deletion confirmations, or `nil` and error message
+
+```lua
+local result, err = airtable.deleteBulk("appXXXXXXXXXX", "Tasks", {
+    "recXXXXXXXXX1",
+    "recXXXXXXXXX2",
+    "recXXXXXXXXX3"
+})
 ```
 
 ---
