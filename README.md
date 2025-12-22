@@ -32,22 +32,6 @@ Once you have Astra installed, simply download airtable.lua and add it to your p
 
 ## Docs
 
-#### Definitions:
-
-``base_id``: Numeric ID of the base
-
-``table_name``: The name of the table the record is in. Also accepts table ID, but must be a string.
-
-``record_id``: The ID of the record you are referencing
-
-``fields``/``updatedFields``: The fields of the record you are creating or updating
-
-``field``: Used in byField functions, the field you are checking
-
-``value``: Used in byField functions, the value you are looking for
-
----
-
 ### Functions
 
 #### `airtable.list(base_id, table_name, view, params)`
