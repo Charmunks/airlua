@@ -67,10 +67,11 @@ local function validateInput(input)
 		return true
 	end
 end
+
 local function url_encode(str)
-  return str:gsub("([^%w%-_%.~])", function(c)
-    return string.format("%%%02X", string.byte(c))
-  end)
+	return str:gsub("([^%w%-_%.~])", function(c)
+		return string.format("%%%02X", string.byte(c))
+	end)
 end
 
 function airtable.list(base_id, table_name, view, params)
@@ -84,10 +85,10 @@ function airtable.list(base_id, table_name, view, params)
 
 	local headers, herr = build_headers()
 	if not headers then
-		return nil, "Headers failed to build (you probably need to set AIRTABLE_API_KEY in your .env)"
+		return nil, herr
 	end
 
-	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. table_name .. "/listRecords"
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name) .. "/listRecords"
 	local body = {}
 	if params and type(params) == "table" then
 		for k, v in pairs(params) do
@@ -152,18 +153,16 @@ function airtable.get(base_id, table_name, record_id)
 
 	local headers, herr = build_headers()
 	if not headers then
-		return nil, "Headers failed to build (you probably need to set AIRTABLE_API_KEY in your .env)"
+		return nil, herr
 	end
 
-	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. table_name .. "/" .. record_id
-	local body = {}
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name) .. "/" .. url_encode(record_id)
 
 	local ok, res_or_err = pcall(function()
 		return http.request {
 			url = url,
 			method = "GET",
 			headers = headers,
-			body = json.encode(body)
 		}:execute()
 	end)
 
@@ -208,15 +207,16 @@ function airtable.getByField(base_id, table_name, field, value)
 		return nil, "Missing base_id"
 	end
 
+	local safeField = airtable.sanitizeFormulaValue(field)
 	local safeValue = airtable.sanitizeFormulaValue(value)
-	local formula = "{" .. field .. "} = \"" .. safeValue .. "\""
+	local formula = "{" .. safeField .. "} = \"" .. safeValue .. "\""
 
 	local records, err = airtable.list(base_id, table_name, nil, {filterByFormula = formula})
 
 	if records then
 		return records.records[1]
 	else 
-		return err
+		return nil, err
 	end
 
 
@@ -237,12 +237,12 @@ function airtable.update(base_id, table_name, record_id, fields)
 
 	local headers, herr = build_headers()
 	if not headers then
-		return nil, "Headers failed to build (you probably need to set AIRTABLE_API_KEY in your .env)"
+		return nil, herr
 	end
 
 	local body = {fields = fields}
 
-	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. table_name .. "/" .. record_id
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name) .. "/" .. url_encode(record_id)
 
 	local ok, res_or_err = pcall(function()
 		return http.request {
@@ -298,8 +298,9 @@ function airtable.updateByField(base_id, table_name, field, value, updatedFields
 		return nil, "Missing fields to update"
 	end
 
+	local safeField = airtable.sanitizeFormulaValue(field)
 	local safeValue = airtable.sanitizeFormulaValue(value)
-	local formula = "{" .. field .. "} = \"" .. safeValue .. "\""
+	local formula = "{" .. safeField .. "} = \"" .. safeValue .. "\""
 
 	local records, err = airtable.list(base_id, table_name, nil, {filterByFormula = formula})
 	local recId 
@@ -312,7 +313,7 @@ function airtable.updateByField(base_id, table_name, field, value, updatedFields
 	local record, err2 = airtable.update(base_id, table_name, recId, updatedFields) 
 
 	if err2 then
-		return err2
+		return nil, err2
 	else 
 		return record 
 	end
@@ -330,7 +331,7 @@ function airtable.create(base_id, table_name, fields)
 
 	local headers, herr = build_headers()
 	if not headers then
-		return nil, "Headers failed to build (you probably need to set AIRTABLE_API_KEY in your .env)"
+		return nil, herr
 	end
 
 	local body = {}
@@ -339,7 +340,7 @@ function airtable.create(base_id, table_name, fields)
 		body = {fields = fields}
 	end
 
-	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. table_name
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name)
 
 	local ok, res_or_err = pcall(function()
 		return http.request {
@@ -389,10 +390,10 @@ function airtable.delete(base_id, table_name, record_id)
 
 	local headers, herr = build_headers()
 	if not headers then
-		return nil, "Headers failed to build (you probably need to set AIRTABLE_API_KEY in your .env)"
+		return nil, herr
 	end
 
-	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. table_name .. "/" .. record_id
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name) .. "/" .. url_encode(record_id)
 
 	local ok, res_or_err = pcall(function()
 		return http.request {
