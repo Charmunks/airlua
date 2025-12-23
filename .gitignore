@@ -3,4 +3,3 @@ examples/airtable.lua
 .env
 .luarc.json
 tlconfig.lua
-*.rockspec
