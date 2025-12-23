@@ -1,0 +1,34 @@
+name: Publish to LuaRocks
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.4"
+
+      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: Upload to LuaRocks
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ROCKSPEC="airtable-lua-${VERSION}-1.rockspec"
+          
+          # Create versioned rockspec from scm
+          sed "s/scm-1/${VERSION}-1/g; s|git://github.com|https://github.com|g" \
+            airtable-lua-scm-1.rockspec > "$ROCKSPEC"
+          
+          # Add tag to source
+          sed -i "s|\.git\"|.git\", tag = \"v${VERSION}\"|" "$ROCKSPEC"
+          
+          luarocks upload "$ROCKSPEC" --api-key="$LUAROCKS_API_KEY"
