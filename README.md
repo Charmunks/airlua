@@ -25,8 +25,8 @@ Note: for installation with luarocks, use "airtable-lua" instead of airtable for
 
 ## Progress
 
-| Type |  Percent | Completed | To-do |
-|------|----------|-----------|-------|
+| Type |  Percent | Completed | 
+|------|----------|-----------|
 | Records | 100% | All routes supported |
 | Tables | 100% | All routes supported | 
 | Fields | 100% | All routes supported | 
