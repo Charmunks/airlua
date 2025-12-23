@@ -17,7 +17,11 @@ WIP Airtable API client for Lua
 
 Airlua requires [Astra](https://astra.arkforge.net/), a modern lua runtime with built in support for HTTP requests, and many other useful functions. Astra allows Airlua to be 100% written in Lua.
 
-Once you have Astra installed, simply download airtable.lua and add it to your project folder. (Luarocks support coming soon)
+Once you have Astra installed, simply download airtable.lua and add it to your project folder, or run:
+```bash
+luarocks install airtable-lua
+```
+Note: for installation with luarocks, use "airtable-lua" instead of airtable for imports
 
 ## Progress
 
@@ -25,7 +29,7 @@ Once you have Astra installed, simply download airtable.lua and add it to your p
 |------|----------|-----------|-------|
 | Records | 100% | All routes supported | - |
 | Tables | 0% | Not started | Implement table management |
-| Fields | 0% | Not started | Implement field management |
+| Fields | 100% | All routes supported | - |
 | Comments | 0% | Not started | Implement comment management | 
 | Bases | 0% | Not started | Implement base management
 | Webhooks | 0% | Not started | Implement webhook management

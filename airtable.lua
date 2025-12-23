@@ -620,5 +620,153 @@ function airtable.deleteBulk(base_id, table_name, recordIds)
 	return ok2 and dec or nil
 end
 
+function airtable.updateField(base_id, table_id, field_id, options)
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	if not validateInput(table_id) then
+		return nil, "Invalid table_id"
+	end
+
+	if not validateInput(field_id) then
+		return nil, "Invalid field_id"
+	end
+
+	if not options or type(options) ~= "table" then
+		return nil, "Options must be a table"
+	end
+
+	if not options.name and not options.description then
+		return nil, "At least one of name or description must be specified"
+	end
+
+	if options.description and type(options.description) == "string" and #options.description > 20000 then
+		return nil, "Description must be no longer than 20,000 characters"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local body = {}
+	if options.name then
+		body.name = options.name
+	end
+	if options.description then
+		body.description = options.description
+	end
+
+	local url = "https://api.airtable.com/v0/meta/bases/" .. base_id .. "/tables/" .. url_encode(table_id) .. "/fields/" .. url_encode(field_id)
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "PATCH",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+function airtable.createField(base_id, table_id, fieldtype, options)
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	if not validateInput(table_id) then
+		return nil, "Invalid table_id"
+	end
+
+	if not validateInput(fieldtype) then
+		return nil, "Invalid type"
+	end
+
+	if not options or type(options) ~= "table" then
+		return nil, "Options must be a table"
+	end
+
+	if not options.name and not options.description then
+		return nil, "At least one of name or description must be specified"
+	end
+
+	if options.description and type(options.description) == "string" and #options.description > 20000 then
+		return nil, "Description must be no longer than 20,000 characters"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local body = {}
+	if options.name then
+		body.name = options.name
+	end
+	if options.description then
+		body.description = options.description
+	end
+
+	body.type = fieldtype
+
+	local url = "https://api.airtable.com/v0/meta/bases/" .. base_id .. "/tables/" .. url_encode(table_id) .. "/fields"
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "POST",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
 return airtable
 
