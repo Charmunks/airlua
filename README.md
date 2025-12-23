@@ -30,13 +30,13 @@ Note: for installation with luarocks, use "airtable-lua" instead of airtable for
 | Records | 100% | All routes supported | - |
 | Tables | 0% | Not started | Implement table management |
 | Fields | 100% | All routes supported | - |
-| Comments | 0% | Not started | Implement comment management | 
+| Comments | 100% | All routes supported | Implement comment management | 
 | Bases | 0% | Not started | Implement base management
 | Webhooks | 0% | Not started | Implement webhook management
 
 ## Docs
 
-### Functions
+### Records
 
 #### `airtable.list(base_id, table_name, view, params)`
 
@@ -162,7 +162,7 @@ local result, err = airtable.delete("appXXXXXXXXXX", "Tasks", "recXXXXXXXXXX")
 
 ---
 
-### Bulk Operations
+### Bulk Records
 
 #### `airtable.createBulk(base_id, table_name, recordsArray)`
 
@@ -226,7 +226,7 @@ local result, err = airtable.deleteBulk("appXXXXXXXXXX", "Tasks", {
 
 ---
 
-### Field Operations
+### Fields
 
 #### `airtable.createField(base_id, table_id, fieldtype, options)`
 
@@ -274,7 +274,82 @@ local field, err = airtable.updateField("appXXXXXXXXXX", "tblXXXXXXXXXX", "fldXX
 
 ---
 
-### Utility Functions
+### Comments
+
+#### `airtable.listComments(base_id, table_name, record_id)`
+
+Lists all comments on a record.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `record_id` (string) - The ID of the record
+
+**Returns:** Table containing `comments` array, or `nil` and error message
+
+```lua
+local comments, err = airtable.listComments("appXXXXXXXXXX", "Tasks", "recXXXXXXXXXX")
+```
+
+---
+
+#### `airtable.createComment(base_id, table_name, record_id, text, parentCommentId)`
+
+Creates a new comment on a record.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `record_id` (string) - The ID of the record
+- `text` (string) - The comment text
+- `parentCommentId` (string, optional) - The ID of a parent comment for replies
+
+**Returns:** Created comment object, or `nil` and error message
+
+```lua
+local comment, err = airtable.createComment("appXXXXXXXXXX", "Tasks", "recXXXXXXXXXX", "This is a comment")
+```
+
+---
+
+#### `airtable.updateComment(base_id, table_name, record_id, comment_id, content)`
+
+Updates an existing comment.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `record_id` (string) - The ID of the record
+- `comment_id` (string) - The ID of the comment to update
+- `content` (string) - The new comment text
+
+**Returns:** Updated comment object, or `nil` and error message
+
+```lua
+local comment, err = airtable.updateComment("appXXXXXXXXXX", "Tasks", "recXXXXXXXXXX", "comXXXXXXXXXX", "Updated comment")
+```
+
+---
+
+#### `airtable.deleteComment(base_id, table_name, record_id, comment_id)`
+
+Deletes a comment.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_name` (string) - The name or ID of the table
+- `record_id` (string) - The ID of the record
+- `comment_id` (string) - The ID of the comment to delete
+
+**Returns:** Deletion confirmation object, or `nil` and error message
+
+```lua
+local result, err = airtable.deleteComment("appXXXXXXXXXX", "Tasks", "recXXXXXXXXXX", "comXXXXXXXXXX")
+```
+
+---
+
+### Utilities
 
 #### `airtable.sanitizeFormulaValue(value)`
 
