@@ -4,7 +4,7 @@
 
 [![Hackatime Badge](https://hackatime-badge.hackclub.com/U07UV4R2G4T/airlua)](https://hackatime.hackclub.com/) [![Hack Club Badge](https://img.shields.io/badge/Hack%20Club-EC3750?logo=Hack%20Club&logoColor=white)](https://flavortown.hackclub.com/projects/356) 
 
-WIP Airtable API client for Lua
+Airtable API client for Lua
 </div>
 
 ## Features
