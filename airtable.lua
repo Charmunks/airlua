@@ -68,6 +68,82 @@ local function validateInput(input)
 	end
 end
 
+local function validateBaseId(base_id)
+	if type(base_id) ~= "string" or base_id == "" then
+		return nil, "base_id must be a non-empty string"
+	end
+	if not base_id:match("^app[%w]+$") then
+		return nil, "Invalid base_id format (must start with 'app' followed by alphanumeric characters)"
+	end
+	if base_id:match("%.%.") or base_id:match("[/\\]") then
+		return nil, "Invalid base_id (contains forbidden characters)"
+	end
+	return true
+end
+
+local function validateRecordId(record_id)
+	if type(record_id) ~= "string" or record_id == "" then
+		return nil, "record_id must be a non-empty string"
+	end
+	if not record_id:match("^rec[%w]+$") then
+		return nil, "Invalid record_id format (must start with 'rec' followed by alphanumeric characters)"
+	end
+	return true
+end
+
+local function validateTableId(table_id)
+	if type(table_id) ~= "string" or table_id == "" then
+		return nil, "table_id must be a non-empty string"
+	end
+	if not table_id:match("^tbl[%w]+$") then
+		return nil, "Invalid table_id format (must start with 'tbl' followed by alphanumeric characters)"
+	end
+	return true
+end
+
+local function validateFieldId(field_id)
+	if type(field_id) ~= "string" or field_id == "" then
+		return nil, "field_id must be a non-empty string"
+	end
+	if not field_id:match("^fld[%w]+$") then
+		return nil, "Invalid field_id format (must start with 'fld' followed by alphanumeric characters)"
+	end
+	return true
+end
+
+local function validateCommentId(comment_id)
+	if type(comment_id) ~= "string" or comment_id == "" then
+		return nil, "comment_id must be a non-empty string"
+	end
+	if not comment_id:match("^com[%w]+$") then
+		return nil, "Invalid comment_id format (must start with 'com' followed by alphanumeric characters)"
+	end
+	return true
+end
+
+local function validateWorkspaceId(workspace_id)
+	if type(workspace_id) ~= "string" or workspace_id == "" then
+		return nil, "workspace_id must be a non-empty string"
+	end
+	if not workspace_id:match("^wsp[%w]+$") then
+		return nil, "Invalid workspace_id format (must start with 'wsp' followed by alphanumeric characters)"
+	end
+	return true
+end
+
+local function validateTableName(table_name)
+	if type(table_name) ~= "string" or table_name == "" then
+		return nil, "table_name must be a non-empty string"
+	end
+	if table_name:match("%.%.") or table_name:match("[/\\]") then
+		return nil, "Invalid table_name (contains forbidden characters)"
+	end
+	if #table_name > 255 then
+		return nil, "table_name exceeds maximum length"
+	end
+	return true
+end
+
 local function url_encode(str)
 	return str:gsub("([^%w%-_%.~])", function(c)
 		return string.format("%%%02X", string.byte(c))
@@ -75,12 +151,14 @@ local function url_encode(str)
 end
 
 function airtable.list(base_id, table_name, view, params)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -139,16 +217,19 @@ function airtable.list(base_id, table_name, view, params)
 end
 
 function airtable.get(base_id, table_name, record_id)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -191,8 +272,9 @@ function airtable.get(base_id, table_name, record_id)
 end
 
 function airtable.getByField(base_id, table_name, field, value)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
 	if not validateInput(field) then
@@ -203,8 +285,9 @@ function airtable.getByField(base_id, table_name, field, value)
 		return nil, "Invalid value"
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local safeField = airtable.sanitizeFormulaValue(field)
@@ -223,16 +306,19 @@ function airtable.getByField(base_id, table_name, field, value)
 end
 
 function airtable.update(base_id, table_name, record_id, fields)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -278,8 +364,9 @@ function airtable.update(base_id, table_name, record_id, fields)
 end
 
 function airtable.updateByField(base_id, table_name, field, value, updatedFields)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
 	if not validateInput(field) then
@@ -290,8 +377,9 @@ function airtable.updateByField(base_id, table_name, field, value, updatedFields
 		return nil, "Invalid value"
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	if not updatedFields then
@@ -321,12 +409,14 @@ function airtable.updateByField(base_id, table_name, field, value, updatedFields
 end
 
 function airtable.create(base_id, table_name, fields)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -376,16 +466,19 @@ function airtable.create(base_id, table_name, fields)
 end
 
 function airtable.delete(base_id, table_name, record_id)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -428,12 +521,14 @@ function airtable.delete(base_id, table_name, record_id)
 end
 
 function airtable.createBulk(base_id, table_name, recordsArray)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	if not recordsArray or type(recordsArray) ~= "table" or #recordsArray == 0 then
@@ -491,12 +586,14 @@ function airtable.createBulk(base_id, table_name, recordsArray)
 end
 
 function airtable.updateBulk(base_id, table_name, recordsArray)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	if not recordsArray or type(recordsArray) ~= "table" or #recordsArray == 0 then
@@ -516,6 +613,10 @@ function airtable.updateBulk(base_id, table_name, recordsArray)
 	for _, record in ipairs(recordsArray) do
 		if not record.id or not record.fields then
 			return nil, "Each record must have 'id' and 'fields' properties"
+		end
+		local validRec, recErr = validateRecordId(record.id)
+		if not validRec then
+			return nil, recErr
 		end
 		table.insert(records, {id = record.id, fields = record.fields})
 	end
@@ -557,12 +658,14 @@ function airtable.updateBulk(base_id, table_name, recordsArray)
 end
 
 function airtable.deleteBulk(base_id, table_name, recordIds)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	if not recordIds or type(recordIds) ~= "table" or #recordIds == 0 then
@@ -580,8 +683,9 @@ function airtable.deleteBulk(base_id, table_name, recordIds)
 
 	local queryParams = {}
 	for _, id in ipairs(recordIds) do
-		if not validateInput(id) then
-			return nil, "Invalid record_id in array"
+		local validRec, recErr = validateRecordId(id)
+		if not validRec then
+			return nil, recErr
 		end
 		table.insert(queryParams, "records[]=" .. url_encode(id))
 	end
@@ -621,16 +725,19 @@ function airtable.deleteBulk(base_id, table_name, recordIds)
 end
 
 function airtable.updateField(base_id, table_id, field_id, options)
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
-	if not validateInput(table_id) then
-		return nil, "Invalid table_id"
+	local validTbl, tblErr = validateTableId(table_id)
+	if not validTbl then
+		return nil, tblErr
 	end
 
-	if not validateInput(field_id) then
-		return nil, "Invalid field_id"
+	local validFld, fldErr = validateFieldId(field_id)
+	if not validFld then
+		return nil, fldErr
 	end
 
 	if not options or type(options) ~= "table" then
@@ -694,12 +801,14 @@ function airtable.updateField(base_id, table_id, field_id, options)
 end
 
 function airtable.createField(base_id, table_id, fieldtype, options)
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
-	if not validateInput(table_id) then
-		return nil, "Invalid table_id"
+	local validTbl, tblErr = validateTableId(table_id)
+	if not validTbl then
+		return nil, tblErr
 	end
 
 	if not validateInput(fieldtype) then
@@ -769,16 +878,19 @@ function airtable.createField(base_id, table_id, fieldtype, options)
 end
 
 function airtable.listComments(base_id, table_name, record_id)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -821,20 +933,24 @@ function airtable.listComments(base_id, table_name, record_id)
 end
 
 function airtable.updateComment(base_id, table_name, record_id, comment_id, content)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
-	if not validateInput(comment_id) then
-		return nil, "Invalid comment_id (must be a string)"
+	local validCom, comErr = validateCommentId(comment_id)
+	if not validCom then
+		return nil, comErr
 	end
 
 	if not validateInput(content) then
@@ -884,16 +1000,19 @@ function airtable.updateComment(base_id, table_name, record_id, comment_id, cont
 end
 
 function airtable.createComment(base_id, table_name, record_id, text, parentCommentId)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	if not validateInput(text) then
@@ -906,7 +1025,11 @@ function airtable.createComment(base_id, table_name, record_id, text, parentComm
 	end
 
 	local body = {text = text}
-	if parentCommentId and validateInput(parentCommentId) then
+	if parentCommentId then
+		local validCom, comErr = validateCommentId(parentCommentId)
+		if not validCom then
+			return nil, comErr
+		end
 		body.parentCommentId = parentCommentId
 	end
 
@@ -946,12 +1069,14 @@ function airtable.createComment(base_id, table_name, record_id, text, parentComm
 end
 
 function airtable.createTable(base_id, name, fields, description)
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
-	if not validateInput(name) then
-		return nil, "Invalid table name"
+	local valid, err = validateTableName(name)
+	if not valid then
+		return nil, err
 	end
 
 	if not fields or type(fields) ~= "table" or #fields == 0 then
@@ -1012,12 +1137,14 @@ function airtable.createTable(base_id, name, fields, description)
 end
 
 function airtable.updateTable(base_id, table_id, options)
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
-	if not validateInput(table_id) then
-		return nil, "Invalid table_id"
+	local validTbl, tblErr = validateTableId(table_id)
+	if not validTbl then
+		return nil, tblErr
 	end
 
 	if not options or type(options) ~= "table" then
@@ -1127,8 +1254,9 @@ function airtable.listBases(offset)
 end
 
 function airtable.getBaseSchema(base_id, include)
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
 	local headers, herr = build_headers()
@@ -1178,12 +1306,16 @@ function airtable.getBaseSchema(base_id, include)
 end
 
 function airtable.createBase(workspace_id, name, tables)
-	if not validateInput(workspace_id) then
-		return nil, "Invalid workspace_id"
+	local validWsp, wspErr = validateWorkspaceId(workspace_id)
+	if not validWsp then
+		return nil, wspErr
 	end
 
 	if not validateInput(name) then
 		return nil, "Invalid base name"
+	end
+	if name:match("%.%.") or name:match("[/\\]") then
+		return nil, "Invalid base name (contains forbidden characters)"
 	end
 
 	if not tables or type(tables) ~= "table" or #tables == 0 then
@@ -1237,20 +1369,24 @@ function airtable.createBase(workspace_id, name, tables)
 end
 
 function airtable.deleteComment(base_id, table_name, record_id, comment_id)
-	if not validateInput(table_name) then
-		return nil, "Invalid table_name"
+	local valid, err = validateTableName(table_name)
+	if not valid then
+		return nil, err
 	end
 
-	if not validateInput(record_id) then
-		return nil, "Invalid record_id (must be a string)"
+	local validRec, recErr = validateRecordId(record_id)
+	if not validRec then
+		return nil, recErr
 	end
 
-	if not base_id then
-		return nil, "Missing base_id"
+	local validBase, baseErr = validateBaseId(base_id)
+	if not validBase then
+		return nil, baseErr
 	end
 
-	if not validateInput(comment_id) then
-		return nil, "Invalid comment_id (must be a string)"
+	local validCom, comErr = validateCommentId(comment_id)
+	if not validCom then
+		return nil, comErr
 	end
 
 	local headers, herr = build_headers()
