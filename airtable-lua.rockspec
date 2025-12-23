@@ -6,9 +6,7 @@ source = {
 description = {
    summary = "Airtable API client for Lua",
    detailed = [[
-      Airtable API client for Lua with support for all record operations,
-      built-in protection against Airtable injections, and support for modifying/getting
-      records using field values. Built for the Astra lua runtime.
+      Airtable API client for Lua with the goal of supporting 100% of Airtable API methods. Made for the Astra lua runtime.
    ]],
    homepage = "https://github.com/Charmunks/airlua",
    license = "MIT"
