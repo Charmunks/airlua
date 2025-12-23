@@ -27,12 +27,11 @@ Note: for installation with luarocks, use "airtable-lua" instead of airtable for
 
 | Type |  Percent | Completed | To-do |
 |------|----------|-----------|-------|
-| Records | 100% | All routes supported | - |
-| Tables | 0% | Not started | Implement table management |
-| Fields | 100% | All routes supported | - |
-| Comments | 100% | All routes supported | Implement comment management | 
-| Bases | 0% | Not started | Implement base management
-| Webhooks | 0% | Not started | Implement webhook management
+| Records | 100% | All routes supported |
+| Tables | 100% | All routes supported | 
+| Fields | 100% | All routes supported | 
+| Comments | 100% | All routes supported 
+| Bases | 100% | All routes supported |
 
 ## Docs
 
@@ -226,6 +225,53 @@ local result, err = airtable.deleteBulk("appXXXXXXXXXX", "Tasks", {
 
 ---
 
+### Tables
+
+#### `airtable.createTable(base_id, name, fields, description)`
+
+Creates a new table in a base.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `name` (string) - The name of the table
+- `fields` (table) - Array of field configurations (at least one required). The first field becomes the primary field.
+- `description` (string, optional) - Table description (max 20,000 characters)
+
+**Returns:** Created table object, or `nil` and error message
+
+```lua
+local newTable, err = airtable.createTable("appXXXXXXXXXX", "My Table", {
+    {name = "Name", type = "singleLineText"},
+    {name = "Notes", type = "multilineText"},
+    {name = "Status", type = "singleSelect", options = {choices = {{name = "Todo"}, {name = "Done"}}}}
+}, "Optional description")
+```
+
+---
+
+#### `airtable.updateTable(base_id, table_id, options)`
+
+Updates an existing table's name, description, or date dependency settings.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_id` (string) - The ID or name of the table
+- `options` (table) - Table options to update:
+  - `name` (string, optional) - The new name of the table
+  - `description` (string, optional) - New table description (max 20,000 characters)
+  - `dateDependencySettings` (table, optional) - Date dependency settings
+
+**Returns:** Updated table object, or `nil` and error message
+
+```lua
+local table, err = airtable.updateTable("appXXXXXXXXXX", "tblXXXXXXXXXX", {
+    name = "Renamed Table",
+    description = "Updated description"
+})
+```
+
+---
+
 ### Fields
 
 #### `airtable.createField(base_id, table_id, fieldtype, options)`
@@ -370,5 +416,69 @@ Validates a formula string to ensure it doesn't contain potentially dangerous pa
 - `formula` (string) - The formula to validate
 
 **Returns:** `true` if valid, or `false` and error message
+
+---
+
+### Bases
+
+#### `airtable.listBases(offset)`
+
+Lists all bases accessible by the API token.
+
+**Parameters:**
+- `offset` (string, optional) - Pagination offset for fetching additional pages of bases
+
+**Returns:** Table containing `bases` array and optional `offset` for pagination, or `nil` and error message
+
+```lua
+local result, err = airtable.listBases()
+for _, base in ipairs(result.bases) do
+    print(base.name, base.id)
+end
+```
+
+---
+
+#### `airtable.getBaseSchema(base_id, include)`
+
+Returns the schema of all tables in a base.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `include` (table, optional) - Array of additional fields to include (e.g., `{"visibleFieldIds"}`)
+
+**Returns:** Table containing `tables` array with schema information, or `nil` and error message
+
+```lua
+local schema, err = airtable.getBaseSchema("appXXXXXXXXXX")
+for _, tbl in ipairs(schema.tables) do
+    print(tbl.name, tbl.id)
+end
+```
+
+---
+
+#### `airtable.createBase(workspace_id, name, tables)`
+
+Creates a new base in a workspace.
+
+**Parameters:**
+- `workspace_id` (string) - The ID of the workspace where the base will be created
+- `name` (string) - The name for the new base
+- `tables` (table) - Array of table configurations (at least one required)
+
+**Returns:** Created base object with `id` and `tables`, or `nil` and error message
+
+```lua
+local newBase, err = airtable.createBase("wspXXXXXXXXXX", "My New Base", {
+    {
+        name = "Tasks",
+        fields = {
+            {name = "Name", type = "singleLineText"},
+            {name = "Status", type = "singleSelect", options = {choices = {{name = "Todo"}, {name = "Done"}}}}
+        }
+    }
+})
+```
 
 

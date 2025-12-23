@@ -945,6 +945,297 @@ function airtable.createComment(base_id, table_name, record_id, text, parentComm
 	return ok2 and dec or nil
 end
 
+function airtable.createTable(base_id, name, fields, description)
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	if not validateInput(name) then
+		return nil, "Invalid table name"
+	end
+
+	if not fields or type(fields) ~= "table" or #fields == 0 then
+		return nil, "fields must be a non-empty array"
+	end
+
+	if description and type(description) == "string" and #description > 20000 then
+		return nil, "Description must be no longer than 20,000 characters"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local body = {
+		name = name,
+		fields = fields
+	}
+
+	if description and type(description) == "string" and description ~= "" then
+		body.description = description
+	end
+
+	local url = "https://api.airtable.com/v0/meta/bases/" .. base_id .. "/tables"
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "POST",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+function airtable.updateTable(base_id, table_id, options)
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	if not validateInput(table_id) then
+		return nil, "Invalid table_id"
+	end
+
+	if not options or type(options) ~= "table" then
+		return nil, "Options must be a table"
+	end
+
+	if not options.name and not options.description and not options.dateDependencySettings then
+		return nil, "At least one of name, description, or dateDependencySettings must be specified"
+	end
+
+	if options.description and type(options.description) == "string" and #options.description > 20000 then
+		return nil, "Description must be no longer than 20,000 characters"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local body = {}
+	if options.name then
+		body.name = options.name
+	end
+	if options.description then
+		body.description = options.description
+	end
+	if options.dateDependencySettings then
+		body.dateDependencySettings = options.dateDependencySettings
+	end
+
+	local url = "https://api.airtable.com/v0/meta/bases/" .. base_id .. "/tables/" .. url_encode(table_id)
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "PATCH",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+function airtable.listBases(offset)
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local url = "https://api.airtable.com/v0/meta/bases"
+	if offset and type(offset) == "string" and offset ~= "" then
+		url = url .. "?offset=" .. url_encode(offset)
+	end
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "GET",
+			headers = headers,
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+function airtable.getBaseSchema(base_id, include)
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local url = "https://api.airtable.com/v0/meta/bases/" .. base_id .. "/tables"
+	if include and type(include) == "table" and #include > 0 then
+		local includeParams = {}
+		for _, v in ipairs(include) do
+			table.insert(includeParams, "include=" .. url_encode(v))
+		end
+		url = url .. "?" .. table.concat(includeParams, "&")
+	end
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "GET",
+			headers = headers,
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+function airtable.createBase(workspace_id, name, tables)
+	if not validateInput(workspace_id) then
+		return nil, "Invalid workspace_id"
+	end
+
+	if not validateInput(name) then
+		return nil, "Invalid base name"
+	end
+
+	if not tables or type(tables) ~= "table" or #tables == 0 then
+		return nil, "tables must be a non-empty array"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local body = {
+		name = name,
+		workspaceId = workspace_id,
+		tables = tables
+	}
+
+	local url = "https://api.airtable.com/v0/meta/bases"
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "POST",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
 function airtable.deleteComment(base_id, table_name, record_id, comment_id)
 	if not validateInput(table_name) then
 		return nil, "Invalid table_name"
