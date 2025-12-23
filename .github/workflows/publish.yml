@@ -22,4 +22,10 @@ jobs:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         run: |
           luarocks install dkjson
-          luarocks upload airtable-lua-scm-1.rockspec --api-key="$LUAROCKS_API_KEY"
+          
+          VERSION=$(date +%Y%m%d%H%M%S)
+          ROCKSPEC="airtable-lua-${VERSION}-1.rockspec"
+          
+          sed "s/scm-1/${VERSION}-1/g" airtable-lua-scm-1.rockspec > "$ROCKSPEC"
+          
+          luarocks upload "$ROCKSPEC" --api-key="$LUAROCKS_API_KEY"
