@@ -23,6 +23,8 @@ luarocks install airtable-lua
 ```
 Note: for installation with luarocks, use "airtable-lua" instead of airtable for imports
 
+Also, make sure to set AIRTABLE_API_KEY in your .env
+
 ## Progress
 
 | Type |  Percent | Completed | 
