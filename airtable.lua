@@ -768,5 +768,123 @@ function airtable.createField(base_id, table_id, fieldtype, options)
 	return ok2 and dec or nil
 end
 
+function airtable.listComments(base_id, table_name, record_id)
+	if not validateInput(table_name) then
+		return nil, "Invalid table_name"
+	end
+
+	if not validateInput(record_id) then
+		return nil, "Invalid record_id (must be a string)"
+	end
+
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name) .. "/" .. url_encode(record_id) .. "/comments"
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "GET",
+			headers = headers,
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+function airtable.updateComment(base_id, table_name, record_id, comment_id, content)
+	if not validateInput(table_name) then
+		return nil, "Invalid table_name"
+	end
+
+	if not validateInput(record_id) then
+		return nil, "Invalid record_id (must be a string)"
+	end
+
+	if not base_id then
+		return nil, "Missing base_id"
+	end
+
+	if not validateInput(comment_id) then
+		return nil, "Invalid comment_id (must be a string)"
+	end
+
+	if not validateInput(content) then
+		return nil, "Invalid content (must be a string)"
+	end
+
+	local headers, herr = build_headers()
+	if not headers then
+		return nil, herr
+	end
+
+	local body = {text = content}
+
+	local url = "https://api.airtable.com/v0/" .. base_id .. "/" .. url_encode(table_name) .. "/" .. url_encode(record_id) .. "/comments" .. url_encode(comment_id)
+
+	local ok, res_or_err = pcall(function()
+		return http.request {
+			url = url,
+			method = "PATCH",
+			headers = headers,
+			body = json.encode(body)
+		}:execute()
+	end)
+
+	if not ok then
+		return nil, res_or_err
+	end
+
+	local res = res_or_err
+
+	if not res then
+		return nil, "No response from airtable"
+	end
+
+	local status = res:status_code()
+	local body_text = nil
+	local ok2, dec = pcall(function()
+		body_text = res:body() and res:body():text() or nil
+		return body_text and json.decode(body_text) or nil
+	end)
+
+	if status >= 400 then
+		return ok2 and dec or nil, status
+	end
+
+	return ok2 and dec or nil
+end
+
+
+
+
 return airtable
 

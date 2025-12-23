@@ -226,6 +226,54 @@ local result, err = airtable.deleteBulk("appXXXXXXXXXX", "Tasks", {
 
 ---
 
+### Field Operations
+
+#### `airtable.createField(base_id, table_id, fieldtype, options)`
+
+Creates a new field in a table.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_id` (string) - The ID of the table
+- `fieldtype` (string) - The type of field to create (e.g., `"singleLineText"`, `"number"`, `"checkbox"`)
+- `options` (table) - Field options:
+  - `name` (string) - The name of the field
+  - `description` (string, optional) - Field description (max 20,000 characters)
+
+**Returns:** Created field object, or `nil` and error message
+
+```lua
+local field, err = airtable.createField("appXXXXXXXXXX", "tblXXXXXXXXXX", "singleLineText", {
+    name = "New Field",
+    description = "A description of this field"
+})
+```
+
+---
+
+#### `airtable.updateField(base_id, table_id, field_id, options)`
+
+Updates an existing field in a table.
+
+**Parameters:**
+- `base_id` (string) - The ID of the Airtable base
+- `table_id` (string) - The ID of the table
+- `field_id` (string) - The ID of the field to update
+- `options` (table) - Field options to update:
+  - `name` (string, optional) - The new name of the field
+  - `description` (string, optional) - New field description (max 20,000 characters)
+
+**Returns:** Updated field object, or `nil` and error message
+
+```lua
+local field, err = airtable.updateField("appXXXXXXXXXX", "tblXXXXXXXXXX", "fldXXXXXXXXXX", {
+    name = "Renamed Field",
+    description = "Updated description"
+})
+```
+
+---
+
 ### Utility Functions
 
 #### `airtable.sanitizeFormulaValue(value)`

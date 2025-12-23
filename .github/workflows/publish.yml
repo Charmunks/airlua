@@ -26,6 +26,6 @@ jobs:
           VERSION=$(date +%Y%m%d%H%M%S)
           ROCKSPEC="airtable-lua-${VERSION}-1.rockspec"
           
-          sed "s/scm-1/${VERSION}-1/g" airtable-lua-scm-1.rockspec > "$ROCKSPEC"
+          sed "s/scm-1/${VERSION}-1/g" airtable-lua.rockspec > "$ROCKSPEC"
           
           luarocks upload "$ROCKSPEC" --api-key="$LUAROCKS_API_KEY"
