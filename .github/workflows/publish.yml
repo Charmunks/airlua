@@ -2,8 +2,8 @@ name: Publish to LuaRocks
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   publish:
@@ -21,14 +21,4 @@ jobs:
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          ROCKSPEC="airtable-lua-${VERSION}-1.rockspec"
-          
-          # Create versioned rockspec from scm
-          sed "s/scm-1/${VERSION}-1/g; s|git://github.com|https://github.com|g" \
-            airtable-lua-scm-1.rockspec > "$ROCKSPEC"
-          
-          # Add tag to source
-          sed -i "s|\.git\"|.git\", tag = \"v${VERSION}\"|" "$ROCKSPEC"
-          
-          luarocks upload "$ROCKSPEC" --api-key="$LUAROCKS_API_KEY"
+          luarocks upload airtable-lua-scm-1.rockspec --api-key="$LUAROCKS_API_KEY"
